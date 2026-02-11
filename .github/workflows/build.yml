@@ -62,7 +62,7 @@ jobs:
     needs: build_wheels
     environment:
       name: testpypi
-      url: https://test.pypi.org/project/actspipdemo
+      url: https://test.pypi.org/project/pyacts
     permissions:
       id-token: write
     runs-on: ubuntu-latest
