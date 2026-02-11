@@ -77,5 +77,5 @@ jobs:
       with:
         packages-dir: dist
         repository-url: https://test.pypi.org/legacy/
-        skip-existing: true
+        skip-existing: false
         verbose: true
