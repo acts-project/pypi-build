@@ -68,8 +68,11 @@ jobs:
       - name: Patch version to dev version
         run: |
           pip install change-wheel-version==0.6.0
-          for f in ./wheelhouse/*.whl; do change_wheel_version $f --version $(cat acts/version_number).dev${TIMESTAMP}; done
-          ls ./wheelhouse
+          cd wheelhouse
+          for f in ./*.whl; do
+            change_wheel_version $f --version $(cat acts/version_number).dev${TIMESTAMP} --delete-old-wheel
+          done
+          ls 
 
       - uses: actions/upload-artifact@v4
         with:
