@@ -12,7 +12,13 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Set TIMESTAMP variable
-        run: echo "TIMESTAMP=$(date +%Y%m%d%H%M%S)" >> $GITHUB_ENV
+        run: echo "dev$(date +%Y%m%d%H%M%S)" > build_version.txt
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: build-version
+          path: build_version.txt
+
 
   build_wheels:
     needs: prepare
@@ -35,8 +41,13 @@ jobs:
           ref: feature/improve-python-wheel-build-and-test
           path: acts
 
-      - name: print timestamp
-        run: echo $TIMESTAMP
+      - name: Download build version
+        uses: actions/download-artifact@v4
+        with:
+          name: build-version
+
+      - name: print build version
+        run: cat build_version.txt
 
       #- name: Remote terminal
       #  run: curl -sSf https://sshx.io/get | sh -s run
@@ -75,7 +86,7 @@ jobs:
       # Make conditional once we also do main builds 
       - name: Patch version to dev version
         run: |
-          PATCHED_VERSION="$(cat acts/version_number).dev${TIMESTAMP}"
+          PATCHED_VERSION="$(cat acts/version_number).$(cat build_version.txt)"
           echo "Patch to version $PATCHED_VERSION"
           python3 -m pip install change-wheel-version==0.6.0
           cd wheelhouse
