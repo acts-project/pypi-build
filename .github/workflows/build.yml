@@ -8,7 +8,14 @@ env:
   SETUP_CMD: "bash {package}/CI/dependencies/setup.sh -t v19.0.0 -d deps -e env.sh"
 
 jobs:
+  prepare:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Set TIMESTAMP variable
+        run: echo "TIMESTAMP=$(date +%Y%m%d)" >> $GITHUB_ENV
+
   build_wheels:
+    needs: prepare
     name: Build wheels on ${{ matrix.os }}
     runs-on: ${{ matrix.os }}
     strategy:
@@ -55,7 +62,14 @@ jobs:
           CIBW_ENVIRONMENT_LINUX: CMAKE_PREFIX_PATH=$PWD/deps/venv:$PWD/deps/view CCACHE_DIR=/host/${{ env.CCACHE_DIR }}
           CIBW_ENVIRONMENT_MACOS: CMAKE_PREFIX_PATH=$PWD/deps/venv:$PWD/deps/view MACOSX_DEPLOYMENT_TARGET=15.0
           CIBW_BEFORE_TEST: ccache -s
-          CIBW_TEST_COMMAND: python {project}/acts/Python/Examples/bin/hello_world_kalman.py 
+          CIBW_TEST_COMMAND: python {project}/acts/Python/Examples/bin/hello_world_kalman.py
+
+      # Make conditional once we also do main builds 
+      - name: Patch version to dev version
+        run: |
+          pip install change-wheel-version==0.6.0
+          for f in ./wheelhouse/*.whl; do change_wheel_version $f --version $(cat acts/version_number).dev${TIMESTAMP}; done
+          ls ./wheelhouse
 
       - uses: actions/upload-artifact@v4
         with:
