@@ -64,6 +64,11 @@ jobs:
           CIBW_BEFORE_TEST: ccache -s
           CIBW_TEST_COMMAND: python {project}/acts/Python/Examples/bin/hello_world_kalman.py
 
+      - name: Set up Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: "3.13"
+
       # Make conditional once we also do main builds 
       - name: Patch version to dev version
         run: |
