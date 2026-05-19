@@ -9,8 +9,8 @@ on:
   workflow_dispatch:
     inputs:
       acts_ref:
-        description: 'Acts ref to build (e.g. v39.3.0)'
-        required: true
+        description: 'Acts ref to build (e.g. v39.3.0) — leave empty to trigger a nightly build'
+        required: false
         type: string
 
 env:
@@ -25,11 +25,11 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Set build version
-        if: github.event_name != 'workflow_dispatch'
+        if: github.event_name != 'workflow_dispatch' || github.event.inputs.acts_ref == ''
         run: echo "dev$(date +%Y%m%d%H%M%S)" > build_version.txt
 
       - uses: actions/upload-artifact@v4
-        if: github.event_name != 'workflow_dispatch'
+        if: github.event_name != 'workflow_dispatch' || github.event.inputs.acts_ref == ''
         with:
           name: build-version
           path: build_version.txt
@@ -72,13 +72,13 @@ jobs:
         run: tar xzf acts-source.tar.gz
 
       - name: Download build version
-        if: github.event_name != 'workflow_dispatch'
+        if: github.event_name != 'workflow_dispatch' || github.event.inputs.acts_ref == ''
         uses: actions/download-artifact@v4
         with:
           name: build-version
 
       - name: print build version
-        if: github.event_name != 'workflow_dispatch'
+        if: github.event_name != 'workflow_dispatch' || github.event.inputs.acts_ref == ''
         run: cat build_version.txt
 
       #- name: Remote terminal
@@ -117,7 +117,7 @@ jobs:
           python-version: "3.13"
 
       - name: Patch version to dev version
-        if: github.event_name != 'workflow_dispatch'
+        if: github.event_name != 'workflow_dispatch' || github.event.inputs.acts_ref == ''
         run: |
           PATCHED_VERSION="$(cat acts/version_number).$(cat build_version.txt)"
           echo "Patch to version $PATCHED_VERSION"
@@ -142,7 +142,7 @@ jobs:
 
   upload_pypi_test:
     needs: build_wheels
-    if: github.event_name != 'workflow_dispatch'
+    if: github.event_name != 'workflow_dispatch' || github.event.inputs.acts_ref == ''
     environment:
       name: testpypi
       url: https://test.pypi.org/project/pyacts
@@ -167,7 +167,7 @@ jobs:
 
   upload_pypi:
     needs: build_wheels
-    if: github.event_name == 'workflow_dispatch'
+    if: github.event_name == 'workflow_dispatch' && github.event.inputs.acts_ref != ''
     environment:
       name: pypi
       url: https://pypi.org/project/pyacts
